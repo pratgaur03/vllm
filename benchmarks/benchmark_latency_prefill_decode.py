@@ -63,17 +63,24 @@ def main(args: argparse.Namespace):
     } for batch in dummy_prompt_token_ids.tolist()]
 
     def llm_generate():
-        if not args.use_beam_search:
-            outputs = llm.generate(dummy_prompts, sampling_params=sampling_params, use_tqdm=False)
-        else:
-            outputs = llm.beam_search(
-                dummy_prompts,
-                BeamSearchParams(
-                    beam_width=args.n,
-                    max_tokens=args.output_len,
-                    ignore_eos=True,
-                ),
-            )
+        try:
+            if not args.use_beam_search:
+                outputs = llm.generate(dummy_prompts, sampling_params=sampling_params, use_tqdm=False)
+            else:
+                outputs = llm.beam_search(
+                    dummy_prompts,
+                    BeamSearchParams(
+                        beam_width=args.n,
+                        max_tokens=args.output_len,
+                        ignore_eos=True,
+                    ),
+                )
+        except RuntimeError as e:
+            if "CUDA out of memory" in str(e):
+                print(f"\033[91m[OOM]\033[0m Skipping input_len={args.input_len}, batch_size={args.batch_size}")
+                return None, None, None  # or raise a flag to skip iteration
+            else:
+                raise
 
         all_prefill_latencies = []
         all_decode_latencies = []
@@ -82,7 +89,7 @@ def main(args: argparse.Namespace):
         for output in outputs:
             m = output.metrics
 
-            prefill_latency = m.first_token_time - m.arrival_time
+            prefill_latency = m.first_token_time - m.first_scheduled_time
             decode_latency = m.last_token_time  - m.first_token_time
             decode_iters = max(len(output.outputs[0].token_ids) - 1, 1)
 
