@@ -8,7 +8,7 @@ tensor_parallel_factors=(1)
 
 # Model & paths
 model_name="/workspace/llama_3.1_70B"
-benchmark_script="benchmark_latency_prefill_decode.py"
+benchmark_script="benchmarks/benchmark_throughput_prefill_decode.py"
 output_dir="benchmark_results"
 
 mkdir -p "$output_dir"
@@ -29,12 +29,14 @@ for input_len in "${input_lengths[@]}"; do
         --gpu-memory-utilization 0.9 \
         --input-len "$input_len" \
         --output-len "$output_len" \
-        --batch-size "$batch_size" \
+        --num-prompts "$batch_size" \
         --tensor-parallel-size "$tp_size" \
         --output-json "$output_file" \
-        --num-iters 1024 \
-        --num-iters-warmup 1 \
         --disable-detokenize 
+        # --batch-size "$batch_size" \
+        # --num-iters 1 \
+        # --num-iters-warmup 1 \
+
     done
   done
 done
