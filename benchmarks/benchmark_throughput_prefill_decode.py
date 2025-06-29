@@ -99,6 +99,9 @@ def run_vllm(
     total_decode_time = 0.0
     total_prefill_tokens = 0
     total_decode_tokens = 0
+    all_prefill_latencies = []
+    all_decode_latencies = []
+
 
     for output in outputs or []:
         m = output.metrics
@@ -112,6 +115,8 @@ def run_vllm(
         decode_len = sum(len(o.token_ids) for o in output.outputs if o)
 
         decode_iters = max(decode_len - 1, 1)  
+        all_prefill_latencies.append(prefill_latency)
+        all_decode_latencies.append(decode_latency)
 
         print(f"Request:")
         print(f"  Prefill latency: {prefill_latency:.4f}s for {prompt_len} tokens")
@@ -133,6 +138,8 @@ def run_vllm(
     "prefill_time": total_prefill_time,
     "decode_tokens": total_decode_tokens,
     "decode_time": total_decode_time,
+    "prefill_latencies": all_prefill_latencies,
+    "decode_latencies": all_decode_latencies,
 }
 
 
@@ -471,6 +478,8 @@ def main(args: argparse.Namespace):
             results["decode_tokens"] = extra_metrics["decode_tokens"]
             results["prefill_time"] = extra_metrics["prefill_time"]
             results["decode_time"] = extra_metrics["decode_time"]
+            results["prefill_latencies"] = extra_metrics["prefill_latencies"]
+            results["decode_latencies"] = extra_metrics["decode_latencies"]
 
         with open(args.output_json, "w") as f:
             json.dump(results, f, indent=4)

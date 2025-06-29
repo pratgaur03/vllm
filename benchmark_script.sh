@@ -4,7 +4,7 @@
 input_lengths=(32 64 128 256 512 1024 2048 4096 8192 16384 32768)
 output_len=32
 batch_sizes=(1 8 16 32 64 128 256 512 1024)
-tensor_parallel_factors=(1)
+tensor_parallel_factors=(8)
 
 # Model & paths
 model_name="/workspace/llama_3.1_70B"
@@ -32,11 +32,7 @@ for input_len in "${input_lengths[@]}"; do
         --num-prompts "$batch_size" \
         --tensor-parallel-size "$tp_size" \
         --output-json "$output_file" \
-        --disable-detokenize 
-        # --batch-size "$batch_size" \
-        # --num-iters 1 \
-        # --num-iters-warmup 1 \
-
+        --disable-detokenize
     done
   done
 done
