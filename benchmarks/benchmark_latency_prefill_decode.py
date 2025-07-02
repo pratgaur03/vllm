@@ -87,6 +87,8 @@ def main(args: argparse.Namespace):
         all_decode_per_iter_latencies = []
 
         for output in outputs:
+            print('output',output)
+            print('metrics',output.metrics)
             m = output.metrics
 
             prefill_latency = m.first_token_time - m.first_scheduled_time

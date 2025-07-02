@@ -1559,6 +1559,8 @@ class EngineArgs:
 
         # No Fp8 KV cache so far.
         if self.kv_cache_dtype != "auto":
+            
+            
             fp8_attention = self.kv_cache_dtype.startswith("fp8")
             will_use_fa = (
                 current_platform.is_cuda()

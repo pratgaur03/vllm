@@ -35,7 +35,7 @@ from collections.abc import AsyncGenerator, Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Optional
-
+import pandas as pd
 import numpy as np
 from backend_request_func import (ASYNC_REQUEST_FUNCS, RequestFuncInput,
                                   RequestFuncOutput)
@@ -59,7 +59,7 @@ from benchmark_utils import convert_to_pytorch_benchmark_format, write_to_json
 
 MILLISECONDS_TO_SECONDS_CONVERSION = 1000
 
-
+Record_Start_Timestamp =None
 @dataclass
 class BenchmarkMetrics:
     completed: int
@@ -152,10 +152,10 @@ def calculate_metrics(
     all_tpots: list[float] = []
     ttfts: list[float] = []
     e2els: list[float] = []
+ 
     for i in range(len(outputs)):
         if outputs[i].success:
             output_len = outputs[i].output_tokens
-
             if output_len is None:
                 # We use the tokenizer to count the number of output tokens
                 # for some serving backends instead of looking at
@@ -180,7 +180,8 @@ def calculate_metrics(
             completed += 1
         else:
             actual_output_lens.append(0)
-
+    out_dir = f"online_serving_results"
+    os.makedirs(out_dir, exist_ok=True)
     if goodput_config_dict:
         valid_metrics = []
         slo_values = []
@@ -338,6 +339,7 @@ async def benchmark(
                  if max_concurrency else None)
 
     async def limited_request_func(request_func_input, pbar):
+        
         if semaphore is None:
             return await request_func(request_func_input=request_func_input,
                                       pbar=pbar)
@@ -347,6 +349,9 @@ async def benchmark(
 
     benchmark_start_time = time.perf_counter()
     tasks: list[asyncio.Task] = []
+    
+    global Record_Start_Timestamp
+    Record_Start_Timestamp= time.time()
     async for request in get_request(input_requests, request_rate, burstiness):
         prompt, prompt_len, output_len, mm_content = request.prompt, \
             request.prompt_len, request.expected_output_len, \
@@ -430,8 +435,11 @@ async def benchmark(
         "input_lens": [output.prompt_len for output in outputs],
         "output_lens": actual_output_lens,
         "ttfts": [output.ttft for output in outputs],
+        "prefill_start_ts": [output.prefill_start_ts for output in outputs],
+        "prefill_start_counter":[output.prefill_start_counter for output in outputs],
+        "prefill_end_counter":[output.prefill_end_counter for output in outputs],
+        "prefill_end_ts":[output.prefill_end_ts for output in outputs],
         "itls": [output.itl for output in outputs],
-        "generated_texts": [output.generated_text for output in outputs],
         "errors": [output.error for output in outputs],
     }
 
@@ -706,7 +714,8 @@ def main(args: argparse.Namespace):
         base_model_id = model_id.split("/")[-1]
         max_concurrency_str = (f"-concurrency{args.max_concurrency}"
                                if args.max_concurrency is not None else "")
-        file_name = f"{backend}-{args.request_rate}qps{max_concurrency_str}-{base_model_id}-{current_dt}.json"  #noqa
+        
+        file_name = f"online_serving_results/{Record_Start_Timestamp}_input_len_{args.sonnet_input_len}_output_len_{args.sonnet_output_len}-{args.request_rate}qps{max_concurrency_str}-{base_model_id}-{current_dt}.json"  #noqa
         if args.result_filename:
             file_name = args.result_filename
         if args.result_dir:

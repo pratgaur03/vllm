@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from vllm.multimodal import MultiModalKwargs
     from vllm.multimodal.inputs import PlaceholderRange
 
+import time
 
 class Request:
 

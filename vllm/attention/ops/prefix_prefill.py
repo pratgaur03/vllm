@@ -139,7 +139,10 @@ if triton.__version__ >= "2.1.0":
                              mask=dim_mask[:, None] &
                              ((start_n + offs_n[None, :]) < cur_batch_ctx_len),
                              other=0.0)  # [D,N]
-
+            # if cur_batch==0:
+            #     tl.device_print("kload dtype",k_load.dtype)
+            #     tl.device_print("kscale dtype",k_scale.dtype)
+            #     tl.device_print("q dtype",q.dtype)
             if k_load.dtype.is_fp8():
                 k = (k_load.to(tl.float32) * tl.load(k_scale)).to(q.dtype)
             else:
@@ -838,7 +841,7 @@ if triton.__version__ >= "2.1.0":
                 num_stages=1,
             )
             return
-
+        
         _fwd_kernel[grid](
             q,
             k,

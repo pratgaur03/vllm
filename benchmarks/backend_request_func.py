@@ -41,6 +41,10 @@ class RequestFuncOutput:
     latency: float = 0.0
     output_tokens: int = 0
     ttft: float = 0.0  # Time to first token
+    prefill_start_ts=None
+    prefill_start_counter=None
+    prefill_end_counter=None
+    prefill_end_ts=None
     itl: list[float] = field(
         default_factory=list)  # list of inter-token latencies
     tpot: float = 0.0  # avg next-token latencies
@@ -269,6 +273,7 @@ async def async_request_openai_completions(
         output.prompt_len = request_func_input.prompt_len
 
         generated_text = ""
+        wall_clock_time=time.time()
         st = time.perf_counter()
         most_recent_timestamp = st
         try:
@@ -297,8 +302,14 @@ async def async_request_openai_completions(
                                 # First token
                                 if not first_chunk_received:
                                     first_chunk_received = True
-                                    ttft = time.perf_counter() - st
+                                    curr=time.perf_counter()
+                                    curr_wall_clock=time.time()
+                                    ttft = curr - st
                                     output.ttft = ttft
+                                    output.prefill_end_counter=curr
+                                    output.prefill_end_ts=curr_wall_clock
+                                    output.prefill_start_counter=st
+                                    output.prefill_start_ts=wall_clock_time
 
                                 # Decoding phase
                                 else:

@@ -1,0 +1,13 @@
+{
+    "elapsed_time": 13.606091455090791,
+    "num_requests": 128,
+    "total_num_tokens": 72909,
+    "requests_per_second": 9.40755105332679,
+    "tokens_per_second": 5358.55577927346,
+    "prefill_throughput": 45.42417640612196,
+    "decode_throughput": 21.11692653680476,
+    "prefill_tokens": 68813,
+    "decode_tokens": 4096,
+    "prefill_time": 1514.8981323242188,
+    "decode_time": 193.96762084960938
+}
