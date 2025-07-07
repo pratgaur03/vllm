@@ -242,7 +242,24 @@ def calculate_metrics(
 
     return metrics, actual_output_lens
 
-
+async def run_with_retries(request_func,test_input , max_retries=10, backoff=10 ):
+    """
+    Calls request_func(*args, **kwargs) up to max_retries times,
+    with backoff seconds between attempts, until success=True.
+    """
+    for attempt in range(1, max_retries + 1):
+        try:
+            output: RequestFuncOutput = await request_func(request_func_input=test_input)
+            if output.success:
+                return output
+            else:
+                print(f"[Attempt {attempt}] sanity-check failed: {output.error or 'no output'}")
+        except Exception as e:
+            print(f"[Attempt {attempt}] exception during sanity-check: {e!r}")
+        if attempt < max_retries:
+            await asyncio.sleep(backoff)
+    # if we get here, every attempt failed
+    raise ValueError(f"Initial test run failed after {max_retries} attempts.")
 async def benchmark(
     backend: str,
     api_url: str,
@@ -269,6 +286,13 @@ async def benchmark(
         raise ValueError(f"Unknown backend: {backend}")
 
     print("Starting initial single prompt test run...")
+    print("=== DEBUG: Entering benchmark() ===", flush=True)
+    print(f"DEBUG: backend         = {backend}",     flush=True)
+    print(f"DEBUG: api_url         = {api_url!r}",   flush=True)
+    print(f"DEBUG: model_id        = {model_id!r}",  flush=True)
+    print(f"DEBUG: model_name      = {model_name!r}",flush=True)
+    print(f"DEBUG: request_func    = {request_func.__name__}", flush=True)
+    print("Starting initial single prompt test run...", flush=True)
     test_prompt, test_prompt_len, test_output_len, test_mm_content = \
         input_requests[0].prompt, input_requests[0].prompt_len, \
         input_requests[0].expected_output_len, \
@@ -291,7 +315,9 @@ async def benchmark(
         ignore_eos=ignore_eos,
     )
 
-    test_output = await request_func(request_func_input=test_input)
+    test_output = await run_with_retries(request_func,test_input)
+    
+    print('test_output', test_output)
     if not test_output.success:
         raise ValueError(
             "Initial test run failed - Please make sure benchmark arguments "
@@ -741,8 +767,8 @@ if __name__ == "__main__":
         help="Server or API base url if not using http host and port.",
     )
     # Use 127.0.0.1 here instead of localhost to force the use of ipv4
-    parser.add_argument("--host", type=str, default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--host", type=str, default="localhost")
+    parser.add_argument("--port", type=int, default=8080)
     parser.add_argument(
         "--endpoint",
         type=str,

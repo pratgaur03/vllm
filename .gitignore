@@ -203,3 +203,7 @@ benchmarks/**/*.json
 # Linting
 actionlint
 shellcheck*/
+
+
+# Hardware Monitoring files
+profiling_data/

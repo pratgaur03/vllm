@@ -18,7 +18,7 @@ kill_gpu_processes() {
   # kill all processes on GPU.
   pgrep pt_main_thread | xargs -r kill -9
   pgrep python3 | xargs -r kill -9
-  for port in 8000 8100 8200; do lsof -t -i:$port | xargs -r kill -9; done
+  for port in 8080 8100 8200; do lsof -t -i:$port | xargs -r kill -9; done
   sleep 1
 }
 
@@ -34,7 +34,7 @@ wait_for_server() {
 
 
 launch_chunked_prefill() {
-  model="meta-llama/Meta-Llama-3.1-8B-Instruct"
+  model="amd/Llama-3.1-70B-Instruct-FP8-KV"
   # disagg prefill
   CUDA_VISIBLE_DEVICES=0 python3 \
     -m vllm.entrypoints.openai.api_server \
@@ -58,7 +58,7 @@ launch_chunked_prefill() {
 
 
 launch_disagg_prefill() {
-  model="meta-llama/Meta-Llama-3.1-8B-Instruct" 
+  model="amd/Llama-3.1-70B-Instruct-FP8-KV" 
   # disagg prefill
   CUDA_VISIBLE_DEVICES=0 python3 \
     -m vllm.entrypoints.openai.api_server \
@@ -87,7 +87,7 @@ launch_disagg_prefill() {
 
 benchmark() {
   results_folder="./results"
-  model="meta-llama/Meta-Llama-3.1-8B-Instruct"
+  model="amd/Llama-3.1-70B-Instruct-FP8-KV"
   dataset_name="sonnet"
   dataset_path="../sonnet_4x.txt"
   num_prompts=100
@@ -98,7 +98,7 @@ benchmark() {
   tag=$3
 
   python3 ../benchmark_serving.py \
-          --backend vllm \
+          --backend openai-chat --endpoint /v1/chat/completions \
           --model $model \
           --dataset-name $dataset_name \
           --dataset-path $dataset_path \
@@ -106,7 +106,7 @@ benchmark() {
           --sonnet-output-len "$output_len" \
           --sonnet-prefix-len $prefix_len \
           --num-prompts $num_prompts \
-          --port 8000 \
+          --port 8080 \
           --save-result \
           --result-dir $results_folder \
           --result-filename "$tag"-qps-"$qps".json \

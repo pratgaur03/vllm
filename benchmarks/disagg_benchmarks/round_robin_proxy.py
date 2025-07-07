@@ -49,10 +49,10 @@ async def main():
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, 'localhost', 8000)
+    site = web.TCPSite(runner, 'localhost', 8080)
     await site.start()
 
-    print("Proxy server started on http://localhost:8000")
+    print("Proxy server started on http://localhost:8080")
 
     # Keep the server running
     await asyncio.Event().wait()

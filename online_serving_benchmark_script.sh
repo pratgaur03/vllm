@@ -1,14 +1,23 @@
 #!/bin/bash
 
 # Model: amd/Meta-Llama-3.1-70B-Instruct-FP8-KV
-export HIP_VISIBLE_DEVICES=6,7
-set -euo pipefail
-IFS=$'\n\t'
-source "$(dirname "$0")/online_utils.sh"
+# export HIP_VISIBLE_DEVICES=1,2
+# export VLLM_USE_V1=1
+export MISCOPE_ROOT="/var/lib/jenkins/vllm/miscope"
 
+set -ex
+
+source "$(dirname "$0")/online_utils.sh"
+export -f benchmark
 
 
 main() {
+  (which wget && which curl) || (apt-get update && apt-get install -y wget curl)
+  (which jq) || (apt-get -y install jq)
+  (which socat) || (apt-get -y install socat)
+  (which lsof) || (apt-get -y install lsof)
+
+  pip install quart httpx matplotlib aiohttp datasets
   # cd "$(dirname "$0")"
 
   cd benchmarks
@@ -19,37 +28,48 @@ main() {
     cat sonnet.txt >> sonnet_4x.txt
   done
 
-  rm -rf results
-  mkdir results
+  mkdir -p results
 
   default_output_len=256
 
   export VLLM_HOST_IP=$(hostname -I | awk '{print $1}')
   echo "Launching vllm Processes"
 
-  launch_vllm_prefill
-  for input_len in 32 ; do
-    for qps in 2; do
-      prefix="online_serving_results/profiling_data/in${input_len}_qps${qps}"
-      mkdir -p "$prefix"
+  # launch_chunked_prefill
+  # for input_len in 128 256 512 1024 2048 4096 8192; do
+  #   for qps in 50; do
+  #     prefix="online_serving_results/profiling_data/in${input_len}_qps${qps}_chunked_prefill_tp1"
+  #     mkdir -p "$prefix"
 
-      python ../miscope/miscope.py \
-        --gpus=0,1,2,3,4,5,6,7 \
-        --prefix="$prefix" \
-        --redirect=f"online_serving_results/stdout_log_${input_len}_qps${qps}" \
-        --cmd="bash -lc 'benchmark ${qps} ${input_len} vllm'"
-    done
-  done
+  #     python ../miscope/miscope.py \
+  #       --gpus=6,7 \
+  #       --prefix="$prefix" \
+  #       --redirect="online_serving_results/stdout_log_${input_len}_qps${qps}_chunked_prefill_tp1" \
+  #       --cmd="bash -lc 'source /var/lib/jenkins/vllm/online_utils.sh; benchmark ${qps} ${input_len} chunked_prefill 1'"
 
-  kill_gpu_processes
-
-  # launch_disagg_prefill
-  # for qps in 2 4 6 8; do
-  # benchmark $qps $default_output_len disagg_prefill
+  #   done
   # done
+
   # kill_gpu_processes
 
-  # python3 visualize_benchmark_results.py
+  launch_disagg_prefill
+  for input_len in 128 256 512 1024 2048 4096 8192; do
+    for qps in 5; do
+      prefix="online_serving_results/profiling_data/in${input_len}_qps${qps}_disagg_prefill_tp1"
+      mkdir -p "$prefix"
+      python ../miscope/miscope.py \
+        --gpus=3,7 \
+        --prefix="$prefix" \
+        --redirect="online_serving_results/stdout_log_${input_len}_qps${qps}_disagg_prefill_tp1" \
+        --cmd="bash -lc 'source /var/lib/jenkins/vllm/online_utils.sh; benchmark ${qps} ${input_len} disagg_prefill 1'"
+    done
+  done
+  # # # for qps in 2 4 6 8; do
+  # # # benchmark $qps $default_output_len disagg_prefill
+  # # # done
+  kill_gpu_processes
+
+  python3 disagg_benchmarks/visualize_benchmark_results.py
 
 }
 

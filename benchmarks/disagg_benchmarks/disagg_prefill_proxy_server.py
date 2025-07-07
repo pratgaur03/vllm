@@ -3,13 +3,14 @@
 import os
 
 import aiohttp
-from quart import Quart, make_response, request
+from quart import Quart, make_response, request,Response
 
 AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 
 app = Quart(__name__)
 
-
+PREFILL = "http://localhost:8100"
+DECODE  = "http://localhost:8200"
 async def forward_request(url, data):
     async with aiohttp.ClientSession(timeout=AIOHTTP_TIMEOUT) as session:
         headers = {
@@ -27,7 +28,21 @@ async def forward_request(url, data):
                     content = await response.read()
                     yield content
 
-
+@app.route("/v1/models", methods=["GET"])
+async def proxy_models():
+    """
+    Forward GET /v1/models to the prefill server.
+    """
+    qs = f"?{request.query_string.decode()}" if request.query_string else ""
+    upstream = f"{PREFILL}/v1/models{qs}"
+    async with aiohttp.ClientSession(timeout=AIOHTTP_TIMEOUT) as session:
+        async with session.get(upstream) as resp:
+            body = await resp.read()
+            return Response(
+                body,
+                status=resp.status,
+                headers={"Content-Type": resp.headers.get("Content-Type", "application/json")}
+            )
 @app.route('/v1/completions', methods=['POST'])
 async def handle_request():
     try:
@@ -57,7 +72,22 @@ async def handle_request():
         print("Error occurred in disagg prefill proxy server")
         print(e)
         print("".join(traceback.format_exception(*exc_info)))
+@app.route('/v1/<path:rest>', methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+async def catch_all(rest):
+    """
+    Catch-all to forward any other /v1/* routes back to the prefill node.
+    """
+    upstream = f"{PREFILL}/v1/{rest}"
+    method = request.method
+    data = None
+    if method in ("POST", "PUT", "PATCH"):
+        data = await request.get_json()
+
+    async with aiohttp.ClientSession(timeout=AIOHTTP_TIMEOUT) as session:
+        async with session.request(method, upstream, headers=request.headers, json=data) as resp:
+            body = await resp.read()
+            return Response(body, status=resp.status, headers=resp.headers)
 
 
 if __name__ == '__main__':
-    app.run(port=8000)
+    app.run(port=8080)
