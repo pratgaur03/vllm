@@ -386,6 +386,7 @@ async def async_request_openai_chat_completions(
         output.prompt_len = request_func_input.prompt_len
 
         generated_text = ""
+        wall_clock_time=time.time()
         ttft = 0.0
         st = time.perf_counter()
         most_recent_timestamp = st
@@ -410,6 +411,12 @@ async def async_request_openai_chat_completions(
                                 if ttft == 0.0:
                                     ttft = timestamp - st
                                     output.ttft = ttft
+                                    curr_wall_clock=time.time()
+                                    output.prefill_end_counter=timestamp
+                                    output.prefill_end_ts=curr_wall_clock
+                                    output.prefill_start_counter=st
+                                    output.prefill_start_ts=wall_clock_time
+
 
                                 # Decoding phase
                                 else:

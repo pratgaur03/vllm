@@ -1,0 +1,20 @@
+INFO 07-08 00:16:26 [__init__.py:239] Automatically detected platform rocm.
+Namespace(backend='openai-chat', base_url=None, host='localhost', port=8080, endpoint='/v1/chat/completions', dataset_name='random', dataset_path=None, max_concurrency=None, model='/workspace/llama_3.1_70B', tokenizer=None, use_beam_search=False, num_prompts=100, logprobs=None, request_rate=5.0, burstiness=1.0, seed=0, trust_remote_code=False, disable_tqdm=False, profile=False, save_result=True, save_detailed=False, metadata=None, result_dir='./results', result_filename='disagg_prefill-qps-5-input-len-4096-tp-1.json', ignore_eos=False, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', goodput=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=4096, random_output_len=256, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None, tokenizer_mode='auto', served_model_name=None, lora_modules=None)
+Starting initial single prompt test run...
+=== DEBUG: Entering benchmark() ===
+DEBUG: backend         = openai-chat
+DEBUG: api_url         = 'http://localhost:8080/v1/chat/completions'
+DEBUG: model_id        = '/workspace/llama_3.1_70B'
+DEBUG: model_name      = None
+DEBUG: request_func    = async_request_openai_chat_completions
+Starting initial single prompt test run...
+[Attempt 1] sanity-check failed: no output
+[Attempt 2] sanity-check failed: no output
+[Attempt 3] sanity-check failed: no output
+[Attempt 4] sanity-check failed: no output
+[Attempt 5] sanity-check failed: no output
+[Attempt 6] sanity-check failed: no output
+[Attempt 7] sanity-check failed: no output
+[Attempt 8] sanity-check failed: no output
+[Attempt 9] sanity-check failed: no output
+[Attempt 10] sanity-check failed: no output

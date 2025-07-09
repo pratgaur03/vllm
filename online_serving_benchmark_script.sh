@@ -35,41 +35,41 @@ main() {
   export VLLM_HOST_IP=$(hostname -I | awk '{print $1}')
   echo "Launching vllm Processes"
 
-  # launch_chunked_prefill
-  # for input_len in 128 256 512 1024 2048 4096 8192; do
-  #   for qps in 50; do
-  #     prefix="online_serving_results/profiling_data/in${input_len}_qps${qps}_chunked_prefill_tp1"
-  #     mkdir -p "$prefix"
+  launch_chunked_prefill
+  for qps in 25; do
+    for input_len in 4096 8192; do
+      prefix="online_serving_results/profiling_data/in${input_len}_qps${qps}_chunked_prefill_tp1"
+      mkdir -p "$prefix"
 
-  #     python ../miscope/miscope.py \
-  #       --gpus=6,7 \
-  #       --prefix="$prefix" \
-  #       --redirect="online_serving_results/stdout_log_${input_len}_qps${qps}_chunked_prefill_tp1" \
-  #       --cmd="bash -lc 'source /var/lib/jenkins/vllm/online_utils.sh; benchmark ${qps} ${input_len} chunked_prefill 1'"
+      python ../miscope/miscope.py \
+        --gpus=2,3, \
+        --prefix="$prefix" \
+        --redirect="online_serving_results/stdout_log_${input_len}_qps${qps}_chunked_prefill_tp1" \
+        --cmd="bash -lc 'source /var/lib/jenkins/vllm/online_utils.sh; benchmark ${qps} ${input_len} chunked_prefill 8'"
 
-  #   done
-  # done
+    done
+  done
 
   # kill_gpu_processes
 
-  launch_disagg_prefill
-  for input_len in 128 256 512 1024 2048 4096 8192; do
-    for qps in 5; do
-      prefix="online_serving_results/profiling_data/in${input_len}_qps${qps}_disagg_prefill_tp1"
-      mkdir -p "$prefix"
-      python ../miscope/miscope.py \
-        --gpus=3,7 \
-        --prefix="$prefix" \
-        --redirect="online_serving_results/stdout_log_${input_len}_qps${qps}_disagg_prefill_tp1" \
-        --cmd="bash -lc 'source /var/lib/jenkins/vllm/online_utils.sh; benchmark ${qps} ${input_len} disagg_prefill 1'"
-    done
-  done
+  # launch_disagg_prefill
+  # for input_len in 128 256 512 1024 2048 4096 8192; do
+  #   for qps in 50; do
+  #     prefix="online_serving_results/profiling_data/in${input_len}_qps${qps}_disagg_prefill_tp1"
+  #     mkdir -p "$prefix"
+  #     python ../miscope/miscope.py \
+  #       --gpus=3,7 \
+  #       --prefix="$prefix" \
+  #       --redirect="online_serving_results/stdout_log_${input_len}_qps${qps}_disagg_prefill_tp1" \
+  #       --cmd="bash -lc 'source /var/lib/jenkins/vllm/online_utils.sh; benchmark ${qps} ${input_len} disagg_prefill 1'"
+  #   done
+  # done
   # # # for qps in 2 4 6 8; do
   # # # benchmark $qps $default_output_len disagg_prefill
   # # # done
   kill_gpu_processes
 
-  python3 disagg_benchmarks/visualize_benchmark_results.py
+  # python3 disagg_benchmarks/visualize_benchmark_results.py
 
 }
 
