@@ -1,0 +1,36 @@
+INFO 07-09 12:45:30 [__init__.py:239] Automatically detected platform rocm.
+Namespace(backend='openai-chat', base_url=None, host='localhost', port=8080, endpoint='/v1/chat/completions', dataset_name='random', dataset_path=None, max_concurrency=None, model='/workspace/llama_3.1_70B', tokenizer=None, use_beam_search=False, num_prompts=1024, logprobs=None, request_rate=40.0, burstiness=1.0, seed=0, trust_remote_code=False, disable_tqdm=False, profile=False, save_result=True, save_detailed=False, metadata=None, result_dir='./results', result_filename='chunked_prefill-qps-40-input-len-2048-tp-8.json', ignore_eos=False, percentile_metrics='ttft,tpot,itl', metric_percentiles='99', goodput=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, random_input_len=2048, random_output_len=256, random_range_ratio=1.0, random_prefix_len=0, hf_subset=None, hf_split=None, hf_output_len=None, tokenizer_mode='auto', served_model_name=None, lora_modules=None)
+Starting initial single prompt test run...
+=== DEBUG: Entering benchmark() ===
+DEBUG: backend         = openai-chat
+DEBUG: api_url         = 'http://localhost:8080/v1/chat/completions'
+DEBUG: model_id        = '/workspace/llama_3.1_70B'
+DEBUG: model_name      = None
+DEBUG: request_func    = async_request_openai_chat_completions
+Starting initial single prompt test run...
+test_output RequestFuncOutput(generated_text="It appears that you have provided a large amount of text that seems to be a jumbled collection of words, phrases, and code snippets from various programming languages. It's difficult to discern any specific meaning or context from this text.\n\nIf you could provide more context or clarify what you are trying to communicate, I would be happy to try and assist you. Are you trying to:\n\n* Ask a question about a specific programming concept or language?\n* Share a code snippet or project you are working on?\n* Discuss a particular topic or issue related to programming or technology?\n* Something else entirely?\n\nPlease feel free to provide more information or clarify your intentions, and I will do my best to help.", success=True, latency=2.210227880626917, output_tokens=140, ttft=0.28022547205910087, itl=[0.0029855286702513695, 0.013522208202630281, 0.013732003048062325, 0.013756462838500738, 0.01368768885731697, 0.013869621325284243, 0.013876915909349918, 0.013699131086468697, 0.013688457664102316, 0.01396983303129673, 0.013757108245044947, 0.013639532029628754, 0.013757457956671715, 0.013788907788693905, 0.013836521189659834, 0.013818501029163599, 0.013927769847214222, 0.013689117971807718, 0.013811882119625807, 0.01374153420329094, 0.013857089914381504, 0.01375734293833375, 0.013878543861210346, 0.013827202841639519, 0.01394810900092125, 0.013882089406251907, 0.013801449909806252, 0.013748032972216606, 0.013929191045463085, 0.013780606910586357, 0.013878013007342815, 0.013881905004382133, 0.013747754972428083, 0.013837143778800964, 0.01382755720987916, 0.01389976218342781, 0.01383838290348649, 0.013771438971161842, 0.014165343716740608, 0.013685423415154219, 0.013911438640207052, 0.013870046008378267, 0.013790237251669168, 0.013763060793280602, 0.013882500119507313, 0.014009519014507532, 0.014030769933015108, 0.013740286231040955, 0.01379108801484108, 0.013975698966532946, 0.013695631641894579, 0.013829824980348349, 0.013856493402272463, 0.013895518612116575, 0.013963441364467144, 0.013987655751407146, 0.0138145019300282, 0.013896564953029156, 0.013979327399283648, 0.013761765789240599, 0.013905582949519157, 0.013847977854311466, 0.014114092104136944, 0.013897838070988655, 0.013843912165611982, 0.01371949166059494, 0.013812985271215439, 0.014157229103147984, 0.013833101838827133, 0.013839257881045341, 0.013858373276889324, 0.013822455890476704, 0.013859373982995749, 0.01379404403269291, 0.01389862410724163, 0.01395380962640047, 0.01407725503668189, 0.013716549146920443, 0.013874116819351912, 0.013829305302351713, 0.013891851995140314, 0.013817861676216125, 0.013968212995678186, 0.013830892276018858, 0.013861063867807388, 0.013794626109302044, 0.013838340062648058, 0.013829854782670736, 0.013761166017502546, 0.014205587096512318, 0.01374455401673913, 0.01410282775759697, 0.013956305105239153, 0.013739548157900572, 0.013889527879655361, 0.013861588202416897, 0.014138269703835249, 0.013708834070712328, 0.013844877947121859, 0.013896195217967033, 0.01385726872831583, 0.01388153899461031, 0.013821855187416077, 0.014342317823320627, 0.013597251381725073, 0.013885302003473043, 0.01393190585076809, 0.013712909072637558, 0.013866051100194454, 0.013858379796147346, 0.013962843921035528, 0.013923366088420153, 0.013770624063909054, 0.013843460008502007, 0.013906591106206179, 0.013842490967363119, 0.014057063963264227, 0.013691311702132225, 0.014008344151079655, 0.013771673198789358, 0.013891465961933136, 0.013859939761459827, 0.013884412124752998, 0.014024957083165646, 0.013679328840225935, 0.013974884990602732, 0.01388675021007657, 0.0137805319391191, 0.013870716094970703, 0.013799286913126707, 0.01399452006444335, 0.01385400490835309, 0.014043721836060286, 0.013948641251772642, 0.013813070021569729, 0.013944974634796381, 0.013872952200472355, 0.01388161489740014, 0.013810907024890184, 0.014362337999045849], tpot=0.0, prompt_len=2048, error='')
+Initial test run completed. Starting main benchmark run...
+Traffic request rate: 40.0
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: None
+============ Serving Benchmark Result ============
+Successful requests:                     1024      
+Benchmark duration (s):                  149.25    
+Total input tokens:                      2097152   
+Total generated tokens:                  229733    
+Request throughput (req/s):              6.86      
+Output token throughput (tok/s):         1539.21   
+Total Token throughput (tok/s):          15590.13  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          54931.08  
+Median TTFT (ms):                        54450.22  
+P99 TTFT (ms):                           111485.07 
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          203.50    
+Median TPOT (ms):                        237.22    
+P99 TPOT (ms):                           253.06    
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           199.14    
+Median ITL (ms):                         229.99    
+P99 ITL (ms):                            276.76    
+==================================================

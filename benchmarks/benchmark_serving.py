@@ -467,6 +467,7 @@ async def benchmark(
         "prefill_end_ts":[output.prefill_end_ts for output in outputs],
         "itls": [output.itl for output in outputs],
         "errors": [output.error for output in outputs],
+        "generated_text":[output.generated_text for output in outputs],
     }
 
     def process_one_metric(

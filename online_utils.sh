@@ -48,27 +48,27 @@ wait_for_server() {
 launch_chunked_prefill() {
   model="/workspace/llama_3.1_70B"
 
-  HIP_VISIBLE_DEVICES=2  python3 \
+  HIP_VISIBLE_DEVICES=0,1,2,3  python3 \
     -m vllm.entrypoints.openai.api_server \
     --model $model \
     --port 8100 \
     --max-model-len 10000 \
     --enable-chunked-prefill \
     --quantization fp8  \
-    --kv-cache-dtype fp8 \
+    --tensor-parallel-size 4 \
     --dtype float16 \
     --trust-remote-code \
     --gpu-memory-utilization 0.6 &
 
-  HIP_VISIBLE_DEVICES=3 python3 \
+  HIP_VISIBLE_DEVICES=4,5,6,7 python3 \
     -m vllm.entrypoints.openai.api_server \
     --model $model \
     --port 8200 \
     --max-model-len 10000 \
+    --tensor-parallel-size 4 \
     --trust-remote-code \
     --enable-chunked-prefill \
     --quantization fp8  \
-    --kv-cache-dtype fp8 \
     --dtype float16 \
     --gpu-memory-utilization 0.6 &
 
@@ -83,9 +83,9 @@ launch_chunked_prefill() {
 launch_vllm_prefill() {
   model="/workspace/llama_3.1_70B"
   # normal vllm prefill
-  HIP_VISIBLE_DEVICES=6 vllm serve $model --no-enable-chunked-prefill --port 8100 --quantization fp8 --dtype float16  --max-model-len 10000 --gpu-memory-utilization 0.6  &
+  HIP_VISIBLE_DEVICES=0,1,2,3 vllm serve $model --enable-chunked-prefill false --port 8100 --quantization fp8 --dtype float16 --tensor-parallel-size 4 --max-model-len 10000 --gpu-memory-utilization 0.6  &
 
-  HIP_VISIBLE_DEVICES=7 vllm serve $model --no-enable-chunked-prefill --port 8200 --quantization fp8 --dtype float16 --max-model-len 10000 --gpu-memory-utilization 0.6  &
+  HIP_VISIBLE_DEVICES=4,5,6,7 vllm serve $model --enable-chunked-prefill false --port 8200 --quantization fp8 --dtype float16 --tensor-parallel-size 4 --max-model-len 10000 --gpu-memory-utilization 0.6  &
   wait_for_server 8100
   wait_for_server 8200
   python3 disagg_benchmarks/round_robin_proxy.py &
@@ -95,33 +95,29 @@ launch_vllm_prefill() {
 }
 launch_disagg_prefill() {
   model="/workspace/llama_3.1_70B" 
-  HIP_VISIBLE_DEVICES=0,1,2,3  python3 \
+  HIP_VISIBLE_DEVICES=0  python3 \
     -m vllm.entrypoints.openai.api_server \
     --model $model \
     --port 8100 \
     --max-model-len 10000 \
     --quantization fp8  \
-    --kv-cache-dtype fp8 \
     --dtype float16 \
-    --gpu-memory-utilization 0.6 \
-    --tensor-parallel-size 4 \
+    --gpu-memory-utilization 0.9 \
     --trust-remote-code \
     --kv-transfer-config \
-    '{"kv_connector":"PyNcclConnector","kv_role":"kv_producer","kv_rank":0,"kv_parallel_size":2,"kv_buffer_size":5e10}' &
+    '{"kv_connector":"PyNcclConnector","kv_role":"kv_producer","kv_rank":0,"kv_parallel_size":2,"kv_buffer_size":5e9}' &
 
-  HIP_VISIBLE_DEVICES=4,5,6,7  python3 \
+  HIP_VISIBLE_DEVICES=1  python3 \
     -m vllm.entrypoints.openai.api_server \
     --model  $model \
     --port 8200 \
     --max-model-len 10000 \
     --quantization fp8  \
-    --kv-cache-dtype fp8 \
     --dtype float16 \
-    --gpu-memory-utilization 0.6 \
-    --tensor-parallel-size 4 \
+    --gpu-memory-utilization 0.9 \
     --trust-remote-code \
     --kv-transfer-config \
-    '{"kv_connector":"PyNcclConnector","kv_role":"kv_consumer","kv_rank":1,"kv_parallel_size":2,"kv_buffer_size":5e10}' &
+    '{"kv_connector":"PyNcclConnector","kv_role":"kv_consumer","kv_rank":1,"kv_parallel_size":2,"kv_buffer_size":5e9}' &
 
   wait_for_server 8100
   wait_for_server 8200
@@ -137,13 +133,13 @@ benchmark() {
   model="/workspace/llama_3.1_70B"
   dataset_name="random"
   dataset_path="sonnet_4x.txt"
-  output_len=256
+  output_len=1
   prefix_len=0
   qps=$1
   input_len=$2
   tag=$3
   tp=$4
-  num_prompts=1024
+  num_prompts=100
 
   python3 benchmark_serving.py \
           --backend openai-chat --endpoint /v1/chat/completions \
@@ -151,7 +147,7 @@ benchmark() {
           --dataset-name $dataset_name \
           --random-input-len $input_len \
           --random-output-len $output_len \
-          --num-prompts 1 \
+          --num-prompts 1024 \
           --port 8080 \
           --save-result \
           --result-dir $results_folder \
